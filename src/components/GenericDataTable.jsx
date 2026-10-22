@@ -1,0 +1,617 @@
+import React, { useState, useMemo, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  flexRender,
+} from "@tanstack/react-table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  AlertCircle,
+  X,
+  Loader
+} from "lucide-react";
+import DeleteDialog from "./DeleteDialog";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "@/api/axios";
+import { toast } from "sonner";
+
+const getPaginationRange = (currentPage, totalPages) => {
+  const current = currentPage + 1;
+
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
+  if (current <= 3) {
+    return [1, 2, 3, 4, "...", totalPages];
+  }
+
+  if (current >= totalPages - 2) {
+    return [1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+  }
+
+  return [1, "...", current - 1, current, current + 1, "...", totalPages];
+};
+
+const getSavedPageSize = () => {
+  const savedSize = localStorage.getItem("tablePageSize");
+  return savedSize ? Number(savedSize) : 15;
+};
+
+export default function GenericDataTable({
+  columns,
+  data = [],
+  title,
+  onAdd,
+  onEdit,
+  editApiUrl,
+  deleteApiUrl,
+  queryKey,
+  isLoading,
+  actions = true,
+  highlightedId,
+  pagination: controlledPagination,
+  setPagination: setControlledPagination,
+  requireInactiveReason = false,
+  deleteWithoutId = false,
+  pageCount: controlledPageCount,
+  statusWithoutId = false,
+}) {
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [sorting, setSorting] = useState([]);
+  const [deleteId, setDeleteId] = useState(null);
+
+  const [inactiveDialog, setInactiveDialog] = useState({
+    isOpen: false,
+    rowId: null,
+    keyName: null,
+    newStatus: null,
+  });
+  const [inactiveReason, setInactiveReason] = useState("");
+
+  const { t, isRTL } = useTranslation();
+  const location = useLocation();
+  const queryClient = useQueryClient();
+  const activeHighlightedId = highlightedId ?? location.state?.highlightedId;
+
+  const [internalPagination, setInternalPagination] = useState({
+    pageIndex: location.state?.pageIndex ?? location.state?.fromPage ?? 0,
+    pageSize: getSavedPageSize(),
+  });
+  const pagination = controlledPagination ?? internalPagination;
+  const setPagination = setControlledPagination ?? setInternalPagination;
+
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+  }, [globalFilter, setPagination]);
+
+  const sortedData = useMemo(() => {
+    if (!Array.isArray(data)) return [];
+    return [...data].sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime;
+    });
+  }, [data]);
+
+  useEffect(() => {
+    if (activeHighlightedId && sortedData.length) {
+      const index = sortedData.findIndex(
+        (item) => String(item.id || item.menuItemId || item.pointId || item.expenseId) === String(activeHighlightedId)
+      );
+      if (index !== -1) {
+        const targetPageIndex = Math.floor(index / pagination.pageSize);
+        setPagination((prev) => ({ ...prev, pageIndex: targetPageIndex }));
+      }
+    } else if (location.state?.pageIndex !== undefined && sortedData.length) {
+      setPagination((prev) => ({ ...prev, pageIndex: location.state.pageIndex }));
+    }
+  }, [activeHighlightedId, sortedData, pagination.pageSize, setPagination, location.state?.pageIndex]);
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, newStatus, keyName, reason }) => {
+        const isBundle = editApiUrl?.includes("bundles");
+        const isDiscount = editApiUrl?.includes("discounts");
+        const isFreeDelivery = editApiUrl?.includes("free-delivery");
+
+        const shouldIncludeId = !statusWithoutId && !(isFreeDelivery && deleteWithoutId);
+
+        let url = editApiUrl;
+        if (isBundle || isDiscount) {
+            url = `${editApiUrl}/${id}/toggle-status`;
+        } else if (shouldIncludeId && id) {
+            url = `${editApiUrl}/${id}`;
+        }
+
+        const requestBody = {};
+        requestBody[keyName] = newStatus;
+
+        if (reason) {
+            requestBody.inactiveReason = reason;
+        }
+
+          return await api.patch(url, requestBody);
+    },
+    onSuccess: () => {
+      if (queryKey) {
+        queryClient.invalidateQueries([queryKey]);
+      }
+      toast.success(t("updateStatusSuccessfully"));
+      closeInactiveDialog();
+    },
+    onError: (error) => {
+      console.error("Failed to update status:", error);
+      toast.error(t("updateStatusError"));
+    }
+  });
+
+  const closeInactiveDialog = () => {
+    setInactiveDialog({ isOpen: false, rowId: null, keyName: null, newStatus: null });
+    setInactiveReason("");
+  };
+
+  const submitInactiveReason = () => {
+    updateStatusMutation.mutate({
+      id: inactiveDialog.rowId,
+      newStatus: inactiveDialog.newStatus,
+      keyName: inactiveDialog.keyName,
+      reason: inactiveReason
+    });
+  };
+
+  const tableColumns = useMemo(() => {
+    const baseColumns = [
+      {
+        id: "rowNumber",
+        header: "#",
+        cell: ({ row, table }) => {
+          const pageIndex = table.getState().pagination.pageIndex;
+          const pageSize = table.getState().pagination.pageSize;
+          const indexInCurrentPage = table.getRowModel().rows.findIndex((r) => r.id === row.id);
+
+          return (
+            <span className="font-mono text-xs font-medium text-slate-400">
+              {pageIndex * pageSize + indexInCurrentPage + 1}
+            </span>
+          );
+        },
+        size: 60,
+      },
+    ];
+
+    columns.forEach((col) => {
+      if (col.cell) {
+        baseColumns.push(col);
+        return;
+      }
+
+      const isStatusField = col.accessorKey === "status" || col.accessorKey === "isActive";
+
+      if (isStatusField && editApiUrl) {
+        baseColumns.push({
+          ...col,
+          cell: ({ row }) => {
+            const currentStatus = row.getValue(col.accessorKey);
+            const isActive = currentStatus === "active" || currentStatus === true || currentStatus === 1;
+            const isBlocked = currentStatus === "blocked";
+            const rowId = row.original.id || row.original.menuItemId;
+
+            return (
+              <div className="flex items-center justify-center gap-2.5">
+                <Switch
+                  checked={isActive}
+                  disabled={updateStatusMutation.isPending}
+                  onCheckedChange={(checked) => {
+                    const newStatus = checked ? "active" : "inactive";
+                    if (!checked && requireInactiveReason) {
+                      setInactiveDialog({
+                        isOpen: true,
+                        rowId: rowId,
+                        keyName: col.accessorKey,
+                        newStatus: newStatus
+                      });
+                    } else {
+                      updateStatusMutation.mutate({ id: rowId, newStatus, keyName: col.accessorKey });
+                    }
+                  }}
+                />
+                <span className={cn(
+                  "text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-2xs",
+                  isActive
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60"
+                    : isBlocked
+                      ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/60"
+                      : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200/60"
+                )}>
+                  {isActive ? t("active") : isBlocked ? (t("blocked") || "blocked") : t("inactive")}
+                </span>
+              </div>
+            );
+          }
+        });
+      } else {
+        baseColumns.push(col);
+      }
+    });
+
+    if (actions) {
+      baseColumns.push({
+        id: "actions",
+        header: t("actionsCol"),
+        cell: ({ row }) => (
+          <div className="flex items-center justify-center gap-1.5">
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => {
+                  try {
+                    window.history.replaceState(
+                      {
+                        ...window.history.state,
+                        usr: {
+                          ...window.history.state?.usr,
+                          highlightedId: row.original.id || row.original.menuItemId || row.original.pointId || row.original.expenseId,
+                          pageIndex: pagination.pageIndex,
+                        },
+                      },
+                      document.title
+                    );
+                  } catch (e) {
+                    console.error("Error saving history state:", e);
+                  }
+                  onEdit(row.original);
+                }}
+                className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
+            {deleteApiUrl && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setDeleteId(deleteWithoutId ? "single" : (row.original.id || row.original.menuItemId))}
+                className="h-8 w-8 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-all"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        ),
+      });
+    }
+
+    return baseColumns;
+  }, [columns, onEdit, deleteApiUrl, actions, editApiUrl, updateStatusMutation.isPending, t, requireInactiveReason, deleteWithoutId, pagination.pageIndex]);
+
+  const table = useReactTable({
+    data: sortedData,
+    columns: tableColumns,
+    state: {
+      globalFilter,
+      pagination,
+      sorting,
+    },
+    onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: setPagination,
+    onSortingChange: setSorting,
+    autoResetPageIndex: false,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: controlledPageCount ? undefined : getPaginationRowModel(),
+    manualPagination: !!controlledPageCount,
+    pageCount: controlledPageCount ?? undefined,
+    initialState: {
+      pagination: {
+        pageSize: getSavedPageSize(),
+      },
+    },
+  });
+
+  const currentPage = table.getState().pagination.pageIndex;
+  const totalPages = controlledPageCount ?? table.getPageCount();
+  const paginationRange = useMemo(() => getPaginationRange(currentPage, totalPages), [currentPage, totalPages]);
+
+  return (
+    <div className="relative w-full min-w-0 space-y-6">
+      {/* HEADER CONTROLS */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-xs">
+            <span className="text-xl font-extrabold uppercase">{title?.[0]}</span>
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+              {title}
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              {t("manageAndMonitor")}{" "}
+              <span className="font-semibold text-primary">{title}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Select
+            value={String(pagination.pageSize)}
+            onValueChange={(value) => {
+              const newSize = Number(value);
+              localStorage.setItem("tablePageSize", newSize);
+              setPagination((prev) => ({
+                ...prev,
+                pageSize: newSize,
+                pageIndex: 0,
+              }));
+            }}
+          >
+            <SelectTrigger className="w-[85px] h-10 text-xs font-semibold rounded-xl bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+              <SelectValue placeholder={pagination.pageSize} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="15">15</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="relative w-full sm:w-64">
+            <Search className={cn(
+              "absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400",
+              isRTL ? "right-3.5" : "left-3.5"
+            )} />
+            <Input
+              placeholder={t("searchPlaceholder") || "بحث..."}
+              value={globalFilter ?? ""}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              className={cn(
+                "h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 focus-visible:ring-primary text-sm shadow-2xs transition-all",
+                isRTL ? "pr-10 pl-4" : "pl-10 pr-4"
+              )}
+            />
+          </div>
+
+          {onAdd && (
+            <Button
+              onClick={() => {
+                try {
+                  window.history.replaceState(
+                    {
+                      ...window.history.state,
+                      usr: {
+                        ...window.history.state?.usr,
+                        pageIndex: pagination.pageIndex,
+                      },
+                    },
+                    document.title
+                  );
+                } catch (e) {
+                  console.error("Error saving history state:", e);
+                }
+                onAdd();
+              }}
+              className="h-10 rounded-xl font-semibold shadow-sm bg-primary text-primary-foreground gap-2 shrink-0 transition-all hover:opacity-90"
+            >
+              <Plus className="h-4 w-4" />
+              <span>{t("addNew")}</span>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* TABLE BOX */}
+      <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden transition-all">
+        <div className="overflow-x-auto">
+          <Table className="min-w-[680px]">
+            <TableHeader className="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="hover:bg-transparent border-none">
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className="h-13 align-middle text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 py-3 px-6 text-center"
+                    >
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={tableColumns.length} className="text-center h-48">
+                    <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
+                      <Loader className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => {
+                  const rowId = row.original.id || row.original.menuItemId || row.original.pointId || row.original.expenseId;
+                  const isHighlighted = String(rowId) === String(activeHighlightedId);
+                  return (
+                    <TableRow
+                      key={row.id}
+                      className={cn(
+                        "group border-b border-slate-100 dark:border-slate-800/60 transition-all duration-300",
+                        isHighlighted
+                          ? "bg-amber-50/80 dark:bg-amber-950/30 border-l-4 border-l-amber-500 font-semibold"
+                          : "hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
+                      )}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          className="py-4 px-6 align-middle text-sm text-slate-600 dark:text-slate-300 font-medium text-center"
+                        >
+                          <div className="flex items-center justify-center w-full">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </div>
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={tableColumns.length} className="text-center h-48 text-sm text-slate-400 font-medium">
+                    {t("noDataFound") || "لا توجد بيانات"}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+
+      {/* PAGINATION */}
+      {totalPages > 1 && (
+        <div className="flex flex-wrap items-center justify-center gap-1.5 pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="h-9 w-9 p-0 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+          >
+            {isRTL ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+
+          {paginationRange.map((page, index) => {
+            if (page === "...") {
+              return (
+                <span key={`dots-${index}`} className="h-9 w-7 flex items-center justify-center text-slate-400 text-xs font-bold">
+                  ...
+                </span>
+              );
+            }
+
+            const pageIndex = page - 1;
+            const isSelected = currentPage === pageIndex;
+
+            return (
+              <Button
+                key={page}
+                variant={isSelected ? "default" : "outline"}
+                size="sm"
+                onClick={() => table.setPageIndex(pageIndex)}
+                className={cn(
+                  "h-9 w-9 p-0 rounded-xl font-semibold text-xs transition-all",
+                  isSelected
+                    ? "bg-primary text-primary-foreground shadow-xs"
+                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                )}
+              >
+                {page}
+              </Button>
+            );
+          })}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="h-9 w-9 p-0 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+          >
+            {isRTL ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </Button>
+        </div>
+      )}
+
+      {/* INACTIVE REASON DIALOG */}
+      {inactiveDialog.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs transition-opacity p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-800">
+            <button
+              onClick={closeInactiveDialog}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="flex items-center gap-3.5 mb-4">
+              <div className="p-3 bg-amber-500/10 text-amber-600 rounded-2xl">
+                <AlertCircle size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                  {t("inactiveReasonTitle") || "سبب الإيقاف"}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {t("inactiveReasonDesc") || "يرجى كتابة سبب تحويل الحالة إلى غير مفعل للمتابعة."}
+                </p>
+              </div>
+            </div>
+
+            <Input
+              value={inactiveReason}
+              onChange={(e) => setInactiveReason(e.target.value)}
+              placeholder={t("reasonPlaceholder") || "أدخل السبب هنا..."}
+              className="mb-6 h-12 rounded-xl bg-slate-50/50 dark:bg-slate-800"
+              autoFocus
+            />
+
+            <div className="flex gap-3 justify-end">
+              <Button variant="outline" onClick={closeInactiveDialog} className="rounded-xl px-5">
+                {t("cancel") || "إلغاء"}
+              </Button>
+              <Button
+                onClick={submitInactiveReason}
+                className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl px-5"
+              >
+                {updateStatusMutation.isPending && <Loader className="h-4 w-4 mr-2 animate-spin" />}
+                {t("confirm") || "تأكيد الإيقاف"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE DIALOG */}
+      <DeleteDialog
+        isOpen={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        apiUrl={deleteApiUrl}
+        onSuccessKey={queryKey}
+        id={deleteWithoutId ? null : deleteId}
+      />
+    </div>
+  );
+}

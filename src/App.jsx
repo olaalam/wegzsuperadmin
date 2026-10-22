@@ -1,0 +1,65 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { Toaster } from "sonner";
+import LoginPage from "./components/layout/LoginPage";
+import AppLayout from "./components/layout/AppLayout";
+import { DashboardPage } from "./pages/dashboard-page";
+import { NotFoundPage } from "./pages/not-found-page";
+import AdminsPage from "./pages/Admins/Admins";
+import AdminAddPage from "./pages/Admins/AdminsAdd";
+
+// ─── Route guards ─────────────────────────────────────────────────────────────
+
+function PrivateRoute({ children }) {
+  const isAuthenticated = useSelector((s) => s.auth.isAuthenticated);
+  return isAuthenticated
+    ? <AppLayout>{children}</AppLayout>
+    : <Navigate to="/login" replace />;
+}
+
+function PublicRoute({ children }) {
+  const isAuthenticated = useSelector((s) => s.auth.isAuthenticated);
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
+}
+
+function NotFoundRoute() {
+  const isAuthenticated = useSelector((s) => s.auth.isAuthenticated);
+  return isAuthenticated
+    ? <AppLayout><NotFoundPage /></AppLayout>
+    : <NotFoundPage />;
+}
+
+// ─── App ──────────────────────────────────────────────────────────────────────
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Toaster
+        position="top-center"
+        richColors
+        toastOptions={{ style: { fontFamily: "var(--font-sans, sans-serif)" } }}
+      />
+
+      <Routes>
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+        <Route
+          path="/login"
+          element={<PublicRoute><LoginPage /></PublicRoute>}
+        />
+
+        <Route
+          path="/dashboard"
+          element={<PrivateRoute><DashboardPage /></PrivateRoute>}
+        />
+        <Route path="/admins" element={<PrivateRoute><AdminsPage /></PrivateRoute>} />
+        <Route path="/admins/add" element={<PrivateRoute><AdminAddPage /></PrivateRoute>} />
+        <Route path="/admins/edit/:id" element={<PrivateRoute><AdminAddPage /></PrivateRoute>} />
+        <Route path="/admin/website/dashboard" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/themes" element={<Navigate to="/dashboard" replace />} />
+
+        <Route path="*" element={<NotFoundRoute />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
