@@ -10,7 +10,7 @@ export default function AdminAddPage() {
   const { id } = useParams();
   const isEdit = !!id;
 
-  // 2. جلب بيانات الأدمن في حالة التعديل إذا لم تكن موجودة في الـ state
+  // جلب بيانات الأدمن في حالة التعديل إذا لم تكن موجودة في الـ state
   const { data: adminResponse, isLoading: isLoadingAdmin } = useGet(
     ['admin', id], 
     `/api/admin/admins/${id}`, 
@@ -19,7 +19,7 @@ export default function AdminAddPage() {
 
   const initialAdminData = location.state?.admin || adminResponse?.data?.admin || adminResponse?.data || adminResponse;
 
-  if ((isEdit && isLoadingAdmin) ) {
+  if (isEdit && isLoadingAdmin) {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -27,6 +27,22 @@ export default function AdminAddPage() {
       </div>
     );
   }
+
+  // قائمة الصلاحيات المتاحة (Permissions Options) بناءً على النظام
+  const permissionOptions = [
+    { label: 'Clients Read (قراءة العملاء)', value: 'clients:read' },
+    { label: 'Clients Create (إضافة عملاء)', value: 'clients:create' },
+    { label: 'Clients Update (تعديل عملاء)', value: 'clients:update' },
+    { label: 'Clients Delete (حذف عملاء)', value: 'clients:delete' },
+    { label: 'Sales Read (قراءة المبيعات)', value: 'sales:read' },
+    { label: 'Sales Create (إضافة مبيعات)', value: 'sales:create' },
+    { label: 'Sales Update (تعديل مبيعات)', value: 'sales:update' },
+    { label: 'Sales Delete (حذف مبيعات)', value: 'sales:delete' },
+    { label: 'Packages Read (قراءة الباقات)', value: 'packages:read' },
+    { label: 'Audit Read (قراءة السجلات)', value: 'audit:read' },
+    { label: 'Admins Read (قراءة الأدمنز)', value: 'admins:read' },
+    { label: 'Admins Create (إضافة أدمنز)', value: 'admins:create' },
+  ];
 
   const fields = [
     {
@@ -45,7 +61,7 @@ export default function AdminAddPage() {
       name: 'password',
       label: 'كلمة المرور',
       type: 'password',
-      required: true,
+      required: !isEdit, // كلمة المرور غير إجبارية عند التعديل إذا تركناها فارغة
     },
     {
       name: 'status',
@@ -56,6 +72,13 @@ export default function AdminAddPage() {
         { label: 'نشط (Active)', value: 'active' },
         { label: 'غير نشط (Inactive)', value: 'inactive' },
       ],
+    },
+    {
+      name: 'permissions',
+      label: 'الصلاحيات (Permissions)',
+      type: 'multi-select',
+      required: false,
+      options: permissionOptions,
     },
   ];
 

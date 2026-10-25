@@ -36,7 +36,7 @@ import {
   ChevronRight,
   AlertCircle,
   X,
-  Loader
+  Loader2
 } from "lucide-react";
 import DeleteDialog from "./DeleteDialog";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -85,10 +85,14 @@ export default function GenericDataTable({
   deleteWithoutId = false,
   pageCount: controlledPageCount,
   statusWithoutId = false,
+  canDelete,          // optional: (row) => boolean — return false to lock the delete button for that row
+  getDeleteLabel,     // optional: (row) => string — name shown in the delete confirmation
+  cannotDeleteHint,   // optional: tooltip text for a locked delete button
 }) {
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState([]);
   const [deleteId, setDeleteId] = useState(null);
+  const [deleteName, setDeleteName] = useState("");
 
   const [inactiveDialog, setInactiveDialog] = useState({
     isOpen: false,
@@ -165,12 +169,12 @@ export default function GenericDataTable({
       if (queryKey) {
         queryClient.invalidateQueries([queryKey]);
       }
-      toast.success(t("updateStatusSuccessfully"));
+      toast.success(t("updateStatusSuccessfully") || "تم تحديث الحالة بنجاح");
       closeInactiveDialog();
     },
     onError: (error) => {
       console.error("Failed to update status:", error);
-      toast.error(t("updateStatusError"));
+      toast.error(t("updateStatusError") || "حدث خطأ أثناء تحديث الحالة");
     }
   });
 
@@ -199,7 +203,7 @@ export default function GenericDataTable({
           const indexInCurrentPage = table.getRowModel().rows.findIndex((r) => r.id === row.id);
 
           return (
-            <span className="font-mono text-xs font-medium text-slate-400">
+            <span className="font-mono text-xs font-semibold text-slate-400 dark:text-slate-500">
               {pageIndex * pageSize + indexInCurrentPage + 1}
             </span>
           );
@@ -226,7 +230,7 @@ export default function GenericDataTable({
             const rowId = row.original.id || row.original.menuItemId;
 
             return (
-              <div className="flex items-center justify-center gap-2.5">
+              <div className="flex items-center justify-center gap-3">
                 <Switch
                   checked={isActive}
                   disabled={updateStatusMutation.isPending}
@@ -245,14 +249,14 @@ export default function GenericDataTable({
                   }}
                 />
                 <span className={cn(
-                  "text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-2xs",
+                  "text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full transition-colors",
                   isActive
-                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/60"
+                    ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40"
                     : isBlocked
-                      ? "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/60"
-                      : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200/60"
+                      ? "bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-400 border border-rose-200/60 dark:border-rose-800/40"
+                      : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700"
                 )}>
-                  {isActive ? t("active") : isBlocked ? (t("blocked") || "blocked") : t("inactive")}
+                  {isActive ? (t("active") || "نشط") : isBlocked ? (t("blocked") || "محظور") : (t("inactive") || "غير نشط")}
                 </span>
               </div>
             );
@@ -266,9 +270,9 @@ export default function GenericDataTable({
     if (actions) {
       baseColumns.push({
         id: "actions",
-        header: t("actionsCol"),
+        header: t("actionsCol") || "الإجراءات",
         cell: ({ row }) => (
-          <div className="flex items-center justify-center gap-1.5">
+          <div className="flex items-center justify-center gap-2">
             {onEdit && (
               <Button
                 variant="ghost"
@@ -291,28 +295,43 @@ export default function GenericDataTable({
                   }
                   onEdit(row.original);
                 }}
-                className="h-8 w-8 text-slate-500 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+                className="h-9 w-9 text-slate-500 hover:text-primary hover:bg-primary/10 rounded-xl transition-all shadow-2xs"
+                title={t("edit") || "تعديل"}
               >
                 <Pencil className="h-4 w-4" />
               </Button>
             )}
-            {deleteApiUrl && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setDeleteId(deleteWithoutId ? "single" : (row.original.id || row.original.menuItemId))}
-                className="h-8 w-8 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-all"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
+            {deleteApiUrl && (() => {
+              const deletable = !canDelete || canDelete(row.original);
+              return (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-disabled={!deletable}
+                  onClick={() => {
+                    if (!deletable) return;
+                    setDeleteName(getDeleteLabel ? getDeleteLabel(row.original) : "");
+                    setDeleteId(deleteWithoutId ? "single" : (row.original.id || row.original.menuItemId));
+                  }}
+                  className={cn(
+                    "h-9 w-9 rounded-xl transition-all shadow-2xs",
+                    deletable
+                      ? "text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                      : "text-slate-300 dark:text-slate-600 cursor-not-allowed hover:bg-transparent hover:text-slate-300"
+                  )}
+                  title={deletable ? (t("delete") || "حذف") : (cannotDeleteHint || t("cannotDelete") || "لا يمكن حذف هذا العنصر")}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              );
+            })()}
           </div>
         ),
       });
     }
 
     return baseColumns;
-  }, [columns, onEdit, deleteApiUrl, actions, editApiUrl, updateStatusMutation.isPending, t, requireInactiveReason, deleteWithoutId, pagination.pageIndex]);
+  }, [columns, onEdit, deleteApiUrl, actions, editApiUrl, updateStatusMutation.isPending, t, requireInactiveReason, deleteWithoutId, pagination.pageIndex, canDelete, getDeleteLabel, cannotDeleteHint]);
 
   const table = useReactTable({
     data: sortedData,
@@ -346,18 +365,17 @@ export default function GenericDataTable({
   return (
     <div className="relative w-full min-w-0 space-y-6">
       {/* HEADER CONTROLS */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/80 shadow-sm transition-all">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-xs">
-            <span className="text-xl font-extrabold uppercase">{title?.[0]}</span>
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-xs font-black text-xl">
+            {title?.[0] || "📋"}
           </div>
           <div className="space-y-1">
-            <h2 className="text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            <h2 className="text-xl font-black tracking-tight text-slate-900 dark:text-slate-100">
               {title}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              {t("manageAndMonitor")}{" "}
-              <span className="font-semibold text-primary">{title}</span>
+              {t("manageAndMonitor") || "إدارة ومتابعة سجلات"} <span className="font-semibold text-primary">{title}</span>
             </p>
           </div>
         </div>
@@ -375,29 +393,29 @@ export default function GenericDataTable({
               }));
             }}
           >
-            <SelectTrigger className="w-[85px] h-10 text-xs font-semibold rounded-xl bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700">
+            <SelectTrigger className="w-[90px] h-11 text-xs font-bold rounded-xl bg-slate-50/70 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 shadow-2xs bg-white">
               <SelectValue placeholder={pagination.pageSize} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="15">15</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-              <SelectItem value="100">100</SelectItem>
+              <SelectItem value="15">15 </SelectItem>
+              <SelectItem value="20">20 </SelectItem>
+              <SelectItem value="50">50 </SelectItem>
+              <SelectItem value="100">100 </SelectItem>
             </SelectContent>
           </Select>
 
-          <div className="relative w-full sm:w-64">
+          <div className="relative w-full sm:w-72">
             <Search className={cn(
               "absolute top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400",
-              isRTL ? "right-3.5" : "left-3.5"
+              isRTL ? "right-4" : "left-4"
             )} />
             <Input
-              placeholder={t("searchPlaceholder") || "بحث..."}
+              placeholder={t("searchPlaceholder") || "بحث في السجلات..."}
               value={globalFilter ?? ""}
               onChange={(e) => setGlobalFilter(e.target.value)}
               className={cn(
-                "h-10 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800 focus-visible:ring-primary text-sm shadow-2xs transition-all",
-                isRTL ? "pr-10 pl-4" : "pl-10 pr-4"
+                "h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/80 focus-visible:ring-primary text-sm shadow-2xs transition-all",
+                isRTL ? "pr-11 pl-4" : "pl-11 pr-4"
               )}
             />
           </div>
@@ -421,26 +439,26 @@ export default function GenericDataTable({
                 }
                 onAdd();
               }}
-              className="h-10 rounded-xl font-semibold shadow-sm bg-primary text-primary-foreground gap-2 shrink-0 transition-all hover:opacity-90"
+              className="h-11 px-5 rounded-xl font-bold shadow-md bg-primary text-primary-foreground gap-2 shrink-0 transition-all hover:opacity-90"
             >
               <Plus className="h-4 w-4" />
-              <span>{t("addNew")}</span>
+              <span>{t("addNew") || "إضافة جديد"}</span>
             </Button>
           )}
         </div>
       </div>
 
       {/* TABLE BOX */}
-      <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs overflow-hidden transition-all">
+      <div className="rounded-3xl border border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 shadow-sm overflow-hidden transition-all">
         <div className="overflow-x-auto">
-          <Table className="min-w-[680px]">
+          <Table className="min-w-[720px]">
             <TableHeader className="bg-slate-50/80 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800">
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id} className="hover:bg-transparent border-none">
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="h-13 align-middle text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 py-3 px-6 text-center"
+                      className="h-14 align-middle text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 py-4 px-6 text-center"
                     >
                       {flexRender(
                         header.column.columnDef.header,
@@ -455,9 +473,10 @@ export default function GenericDataTable({
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={tableColumns.length} className="text-center h-48">
-                    <div className="flex flex-col items-center justify-center gap-2 text-slate-400">
-                      <Loader className="h-6 w-6 animate-spin text-primary" />
+                  <TableCell colSpan={tableColumns.length} className="text-center h-56">
+                    <div className="flex flex-col items-center justify-center gap-3 text-slate-400">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <p className="text-xs font-semibold animate-pulse">جاري تحميل البيانات...</p>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -471,14 +490,14 @@ export default function GenericDataTable({
                       className={cn(
                         "group border-b border-slate-100 dark:border-slate-800/60 transition-all duration-300",
                         isHighlighted
-                          ? "bg-amber-50/80 dark:bg-amber-950/30 border-l-4 border-l-amber-500 font-semibold"
+                          ? "bg-amber-50/90 dark:bg-amber-950/40 border-l-4 border-l-amber-500 font-semibold"
                           : "hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
                       )}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
                           key={cell.id}
-                          className="py-4 px-6 align-middle text-sm text-slate-600 dark:text-slate-300 font-medium text-center"
+                          className="py-4 px-6 align-middle text-sm text-slate-700 dark:text-slate-200 font-medium text-center"
                         >
                           <div className="flex items-center justify-center w-full">
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -490,8 +509,8 @@ export default function GenericDataTable({
                 })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={tableColumns.length} className="text-center h-48 text-sm text-slate-400 font-medium">
-                    {t("noDataFound") || "لا توجد بيانات"}
+                  <TableCell colSpan={tableColumns.length} className="text-center h-56 text-sm text-slate-400 font-semibold">
+                    {t("noDataFound") || "لا توجد بيانات متاحة حالياً"}
                   </TableCell>
                 </TableRow>
               )}
@@ -502,13 +521,13 @@ export default function GenericDataTable({
 
       {/* PAGINATION */}
       {totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-center gap-1.5 pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            className="h-9 w-9 p-0 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+            className="h-10 w-10 p-0 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs hover:bg-slate-50"
           >
             {isRTL ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
@@ -516,7 +535,7 @@ export default function GenericDataTable({
           {paginationRange.map((page, index) => {
             if (page === "...") {
               return (
-                <span key={`dots-${index}`} className="h-9 w-7 flex items-center justify-center text-slate-400 text-xs font-bold">
+                <span key={`dots-${index}`} className="h-10 w-8 flex items-center justify-center text-slate-400 text-xs font-bold">
                   ...
                 </span>
               );
@@ -532,9 +551,9 @@ export default function GenericDataTable({
                 size="sm"
                 onClick={() => table.setPageIndex(pageIndex)}
                 className={cn(
-                  "h-9 w-9 p-0 rounded-xl font-semibold text-xs transition-all",
+                  "h-10 w-10 p-0 rounded-xl font-bold text-xs transition-all shadow-2xs",
                   isSelected
-                    ? "bg-primary text-primary-foreground shadow-xs"
+                    ? "bg-primary text-primary-foreground shadow-sm scale-105"
                     : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                 )}
               >
@@ -548,7 +567,7 @@ export default function GenericDataTable({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            className="h-9 w-9 p-0 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+            className="h-10 w-10 p-0 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs hover:bg-slate-50"
           >
             {isRTL ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </Button>
@@ -561,17 +580,17 @@ export default function GenericDataTable({
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-md p-6 relative animate-in zoom-in-95 duration-200 border border-slate-100 dark:border-slate-800">
             <button
               onClick={closeInactiveDialog}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
             >
               <X size={20} />
             </button>
 
-            <div className="flex items-center gap-3.5 mb-4">
-              <div className="p-3 bg-amber-500/10 text-amber-600 rounded-2xl">
+            <div className="flex items-center gap-4 mb-5">
+              <div className="p-3.5 bg-amber-500/10 text-amber-600 rounded-2xl">
                 <AlertCircle size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">
                   {t("inactiveReasonTitle") || "سبب الإيقاف"}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -584,19 +603,19 @@ export default function GenericDataTable({
               value={inactiveReason}
               onChange={(e) => setInactiveReason(e.target.value)}
               placeholder={t("reasonPlaceholder") || "أدخل السبب هنا..."}
-              className="mb-6 h-12 rounded-xl bg-slate-50/50 dark:bg-slate-800"
+              className="mb-6 h-12 rounded-xl bg-slate-50/70 dark:bg-slate-800 border-slate-200 dark:border-slate-700"
               autoFocus
             />
 
             <div className="flex gap-3 justify-end">
-              <Button variant="outline" onClick={closeInactiveDialog} className="rounded-xl px-5">
+              <Button variant="outline" onClick={closeInactiveDialog} className="rounded-xl px-5 h-11 font-semibold">
                 {t("cancel") || "إلغاء"}
               </Button>
               <Button
                 onClick={submitInactiveReason}
-                className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl px-5"
+                className="bg-amber-600 hover:bg-amber-700 text-white rounded-xl px-5 h-11 font-bold shadow-md"
               >
-                {updateStatusMutation.isPending && <Loader className="h-4 w-4 mr-2 animate-spin" />}
+                {updateStatusMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {t("confirm") || "تأكيد الإيقاف"}
               </Button>
             </div>
@@ -611,6 +630,7 @@ export default function GenericDataTable({
         apiUrl={deleteApiUrl}
         onSuccessKey={queryKey}
         id={deleteWithoutId ? null : deleteId}
+        itemName={deleteName}
       />
     </div>
   );

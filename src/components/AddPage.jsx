@@ -140,16 +140,16 @@ const AddPage = ({
     const isLoading = postMutation.isPending || patchMutation.isPending;
 
     return (
-        <Card className="mx-auto shadow-sm border border-slate-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 overflow-hidden">
-            <CardHeader className="space-y-1.5 p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40">
-                <CardTitle className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+        <Card className="max-w-4xl mx-auto shadow-sm border border-slate-100 dark:border-slate-800/80 rounded-3xl bg-white dark:bg-slate-900 overflow-hidden">
+            <CardHeader className="space-y-1.5 p-8 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-800/30">
+                <CardTitle className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100">
                     {isEdit ? `${t("editTitle") || "تعديل"} ${title}` : `${t("addTitle") || "إضافة"} ${title}`}
                 </CardTitle>
-                <CardDescription className="text-xs text-slate-500 dark:text-slate-400">
-                    {t("fillRequired") || "يرجى تعبئة الحقول المطلوبة أدناه للمتابعة."}
+                <CardDescription className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    {t("fillRequired") || "يرجى تعبئة الحقول المطلوبة أدناه بدقة للمتابعة."}
                 </CardDescription>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-8">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {fields.map((fieldItem) => (
@@ -183,7 +183,7 @@ const AddPage = ({
                                                             variant="outline"
                                                             role="combobox"
                                                             className={cn(
-                                                                "w-full justify-between font-normal text-left h-11 bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl text-sm shadow-2xs",
+                                                                "w-full justify-between font-normal text-left h-12 bg-slate-50/70 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 rounded-xl text-sm shadow-2xs",
                                                                 errors[fieldItem.name] ? "border-rose-500 text-rose-500" : ""
                                                             )}
                                                         >
@@ -193,7 +193,7 @@ const AddPage = ({
                                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                         </Button>
                                                     </PopoverTrigger>
-                                                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                                                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 rounded-2xl shadow-xl" align="start">
                                                         <Command shouldFilter={false}>
                                                             <CommandInput
                                                                 placeholder={`${t("searchField") || "بحث"} ${fieldItem.label}...`}
@@ -274,7 +274,7 @@ const AddPage = ({
                                                                 variant="outline"
                                                                 role="combobox"
                                                                 className={cn(
-                                                                    "w-full justify-between font-normal text-left h-11 bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl text-sm shadow-2xs",
+                                                                    "w-full justify-between font-normal text-left h-12 bg-slate-50/70 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 rounded-xl text-sm shadow-2xs",
                                                                     errors[fieldItem.name] ? "border-rose-500 text-rose-500" : ""
                                                                 )}
                                                             >
@@ -284,7 +284,7 @@ const AddPage = ({
                                                                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                                             </Button>
                                                         </PopoverTrigger>
-                                                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                                                        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 rounded-2xl shadow-xl" align="start">
                                                             <Command shouldFilter={false}>
                                                                 <CommandInput
                                                                     placeholder={`${t("searchField") || "بحث"} ${fieldItem.label}...`}
@@ -302,7 +302,7 @@ const AddPage = ({
                                                                                     value={String(option.value)}
                                                                                     onSelect={() => handleToggleOption(option.value)}
                                                                                 >
-                                                                                    <div className="flex items-center gap-2.5 w-full cursor-pointer">
+                                                                                    <div className="flex items-center gap-3 w-full cursor-pointer">
                                                                                         <input
                                                                                             type="checkbox"
                                                                                             checked={isSelected}
@@ -321,13 +321,13 @@ const AddPage = ({
                                                     </Popover>
 
                                                     {safeValue.length > 0 && (
-                                                        <div className="flex flex-wrap gap-1.5 p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900 max-h-32 overflow-y-auto">
+                                                        <div className="flex flex-wrap gap-1.5 p-3 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900 max-h-32 overflow-y-auto">
                                                             {safeValue.map((val) => {
                                                                 const option = fieldItem.options?.find(o => String(o.value) === String(val));
                                                                 return (
                                                                     <span
                                                                         key={val}
-                                                                        className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-lg"
+                                                                        className="inline-flex items-center gap-1.5 bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-xl"
                                                                     >
                                                                         {option ? option.label : val}
                                                                         <button
@@ -369,14 +369,14 @@ const AddPage = ({
                                                         }
                                                     }}
                                                     className={cn(
-                                                        "h-11 file:bg-primary/10 file:text-primary file:border-0 file:rounded-lg file:px-3 file:py-1 file:font-semibold file:text-xs bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-xl text-sm",
+                                                        "h-12 file:bg-primary/10 file:text-primary file:border-0 file:rounded-xl file:px-4 file:py-2 file:font-bold file:text-xs bg-slate-50/70 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 rounded-xl text-sm cursor-pointer",
                                                         errors[fieldItem.name] ? "border-rose-500" : ""
                                                     )}
                                                 />
                                                 {value && (
-                                                    <div className="relative w-28 h-28 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-50 shadow-2xs">
+                                                    <div className="relative w-32 h-32 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden bg-slate-50 shadow-xs">
                                                         <img src={value} alt="Preview" className="w-full h-full object-cover" />
-                                                        <div className="absolute top-1 right-1 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-md shadow-xs">
+                                                        <div className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-xs">
                                                             {t("currentImage") || "الحالية"}
                                                         </div>
                                                     </div>
@@ -390,7 +390,7 @@ const AddPage = ({
                                         control={control}
                                         defaultValue={false}
                                         render={({ field: { onChange: formOnChange, value } }) => (
-                                            <div className="flex items-center h-11">
+                                            <div className="flex items-center h-12">
                                                 <Switch
                                                     checked={!!value}
                                                     onCheckedChange={(checked) => {
@@ -416,14 +416,14 @@ const AddPage = ({
                                             }
                                         })}
                                         className={cn(
-                                            "h-11 rounded-xl bg-slate-50/50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-sm shadow-2xs transition-all focus-visible:ring-primary",
+                                            "h-12 rounded-xl bg-slate-50/70 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-sm shadow-2xs transition-all focus-visible:ring-primary font-medium",
                                             errors[fieldItem.name] ? "border-rose-500" : ""
                                         )}
                                     />
                                 )}
 
                                 {errors[fieldItem.name] && (
-                                    <p className="text-rose-500 text-xs font-medium">{t("required") || "هذا الحقل مطلوب"}</p>
+                                    <p className="text-rose-500 text-xs font-semibold">{t("required") || "هذا الحقل مطلوب"}</p>
                                 )}
                             </div>
                         ))}
@@ -434,19 +434,19 @@ const AddPage = ({
                         )}
                     </div>
 
-                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100 dark:border-slate-800/80">
                         <Button
                             type="button"
                             variant="outline"
                             onClick={handleCancel}
-                            className="w-full md:w-32 h-11 rounded-xl border-slate-200 dark:border-slate-700 font-semibold"
+                            className="w-full md:w-36 h-12 rounded-xl border-slate-200 dark:border-slate-700 font-bold"
                         >
                             {t("cancel") || "إلغاء"}
                         </Button>
                         <Button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full md:w-32 h-11 rounded-xl font-semibold shadow-sm bg-primary text-primary-foreground hover:opacity-90"
+                            className="w-full md:w-36 h-12 rounded-xl font-bold shadow-md bg-primary text-primary-foreground hover:opacity-90"
                         >
                             {isLoading ? (
                                 <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t("savingBtn") || "جاري الحفظ..."}</>

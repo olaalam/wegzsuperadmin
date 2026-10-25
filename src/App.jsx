@@ -7,6 +7,8 @@ import { DashboardPage } from "./pages/dashboard-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import AdminsPage from "./pages/Admins/Admins";
 import AdminAddPage from "./pages/Admins/AdminsAdd";
+import SalesPage from "./pages/Sales/Sales";
+import SalesAddPage from "./pages/Sales/SalesAdd";
 
 // ─── Route guards ─────────────────────────────────────────────────────────────
 
@@ -56,6 +58,10 @@ export default function App() {
         <Route path="/admins/add" element={<PrivateRoute><AdminAddPage /></PrivateRoute>} />
         <Route path="/admins/edit/:id" element={<PrivateRoute><AdminAddPage /></PrivateRoute>} />
         <Route path="/admin/website/dashboard" element={<Navigate to="/dashboard" replace />} />
+
+        <Route path="/sales" element={<PrivateRoute><SalesPage /></PrivateRoute>} />
+        <Route path="/sales/add" element={<PrivateRoute><SalesAddPage /></PrivateRoute>} />
+        <Route path="/sales/edit/:id" element={<PrivateRoute><SalesAddPage /></PrivateRoute>} />
         <Route path="/themes" element={<Navigate to="/dashboard" replace />} />
 
         <Route path="*" element={<NotFoundRoute />} />

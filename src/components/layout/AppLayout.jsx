@@ -7,6 +7,7 @@ import Navbar from "./Navbar";
 const navigation = [
   { to: "/dashboard", label: { en: "Design Studio", ar: "استوديو التصميم" }, icon: LayoutDashboard },
   { to: "/admins", label: { en: "Admins", ar: "الأدمنز" }, icon: ShieldCheck },
+  { to: "/sales", label: { en: "Sales", ar: "المبيعات" }, icon: LayoutDashboard },
 ];
 
 export default function AppLayout({ children }) {
