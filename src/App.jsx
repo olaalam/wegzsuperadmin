@@ -9,6 +9,8 @@ import AdminsPage from "./pages/Admins/Admins";
 import AdminAddPage from "./pages/Admins/AdminsAdd";
 import SalesPage from "./pages/Sales/Sales";
 import SalesAddPage from "./pages/Sales/SalesAdd";
+import PaymentPage from "./pages/Payment/Payment";
+import PaymentsAddPage from "./pages/Payment/Paymentadd";
 
 // ─── Route guards ─────────────────────────────────────────────────────────────
 
@@ -63,6 +65,9 @@ export default function App() {
         <Route path="/sales/add" element={<PrivateRoute><SalesAddPage /></PrivateRoute>} />
         <Route path="/sales/edit/:id" element={<PrivateRoute><SalesAddPage /></PrivateRoute>} />
         <Route path="/themes" element={<Navigate to="/dashboard" replace />} />
+                <Route path="/payments" element={<PrivateRoute><PaymentPage /></PrivateRoute>} />
+        <Route path="/payments/add" element={<PrivateRoute><PaymentsAddPage /></PrivateRoute>} />
+        <Route path="/payments/edit/:id" element={<PrivateRoute><PaymentsAddPage /></PrivateRoute>} />
 
         <Route path="*" element={<NotFoundRoute />} />
       </Routes>

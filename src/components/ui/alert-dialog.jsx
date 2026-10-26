@@ -45,9 +45,8 @@ function AlertDialogContent({ className, size = "default", ...props }) {
         className={cn(
           // position
           "fixed left-1/2 top-1/2 z-50 w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2",
-          // surface (solid, so it never turns transparent if a theme token is missing)
-          "grid gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl outline-none",
-          "dark:border-slate-800 dark:bg-slate-900",
+          // Keep dialogs readable regardless of the active theme.
+          "grid gap-5 rounded-2xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl outline-none",
           // width
           size === "sm" ? "sm:max-w-xs" : "sm:max-w-md",
           // motion

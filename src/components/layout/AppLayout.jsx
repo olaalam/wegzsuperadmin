@@ -8,6 +8,7 @@ const navigation = [
   { to: "/dashboard", label: { en: "Design Studio", ar: "استوديو التصميم" }, icon: LayoutDashboard },
   { to: "/admins", label: { en: "Admins", ar: "الأدمنز" }, icon: ShieldCheck },
   { to: "/sales", label: { en: "Sales", ar: "المبيعات" }, icon: LayoutDashboard },
+  { to: "/payments", label: { en: "Payments", ar: "المدفوعات" }, icon: LayoutDashboard },
 ];
 
 export default function AppLayout({ children }) {
