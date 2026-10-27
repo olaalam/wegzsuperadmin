@@ -9,6 +9,7 @@ const navigation = [
   { to: "/admins", label: { en: "Admins", ar: "الأدمنز" }, icon: ShieldCheck },
   { to: "/sales", label: { en: "Sales", ar: "المبيعات" }, icon: LayoutDashboard },
   { to: "/payments", label: { en: "Payments", ar: "المدفوعات" }, icon: LayoutDashboard },
+  { to: "/reports", label: { en: "Reports", ar: "التقارير" }, icon: LayoutDashboard },
 ];
 
 export default function AppLayout({ children }) {

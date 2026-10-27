@@ -11,6 +11,9 @@ import SalesPage from "./pages/Sales/Sales";
 import SalesAddPage from "./pages/Sales/SalesAdd";
 import PaymentPage from "./pages/Payment/Payment";
 import PaymentsAddPage from "./pages/Payment/Paymentadd";
+import ReportPage from "./pages/Repots/Reportspage";
+import ReportForm from "./pages/Repots/Reportformpage";
+import ReportDetails from "./pages/Repots/Reportdetails";
 
 // ─── Route guards ─────────────────────────────────────────────────────────────
 
@@ -64,10 +67,14 @@ export default function App() {
         <Route path="/sales" element={<PrivateRoute><SalesPage /></PrivateRoute>} />
         <Route path="/sales/add" element={<PrivateRoute><SalesAddPage /></PrivateRoute>} />
         <Route path="/sales/edit/:id" element={<PrivateRoute><SalesAddPage /></PrivateRoute>} />
-        <Route path="/themes" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/payments" element={<PrivateRoute><PaymentPage /></PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
+        <Route path="/payments" element={<PrivateRoute><PaymentPage /></PrivateRoute>} />
         <Route path="/payments/add" element={<PrivateRoute><PaymentsAddPage /></PrivateRoute>} />
         <Route path="/payments/edit/:id" element={<PrivateRoute><PaymentsAddPage /></PrivateRoute>} />
+        <Route path="/reports" element={<PrivateRoute><ReportPage /></PrivateRoute>} />
+        <Route path="/operations/edit/:id" element={<PrivateRoute><ReportForm /></PrivateRoute>} />
+        <Route path="/reports/details/:id" element={<PrivateRoute><ReportDetails /></PrivateRoute>} />
+
 
         <Route path="*" element={<NotFoundRoute />} />
       </Routes>
