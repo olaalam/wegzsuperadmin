@@ -8,8 +8,11 @@ const navigation = [
   { to: "/dashboard", label: { en: "Design Studio", ar: "استوديو التصميم" }, icon: LayoutDashboard },
   { to: "/admins", label: { en: "Admins", ar: "الأدمنز" }, icon: ShieldCheck },
   { to: "/sales", label: { en: "Sales", ar: "المبيعات" }, icon: LayoutDashboard },
+    { to: "/clients", label: { en: "Clients", ar: "العملاء" }, icon: LayoutDashboard },
   { to: "/payments", label: { en: "Payments", ar: "المدفوعات" }, icon: LayoutDashboard },
   { to: "/reports", label: { en: "Reports", ar: "التقارير" }, icon: LayoutDashboard },
+  { to: "/financial-reports", label: { en: "Financial Reports", ar: "التقارير المالية" }, icon: LayoutDashboard },
+  { to: "/sections", label: { en: "Sections", ar: "الأقسام" }, icon: LayoutDashboard },
 ];
 
 export default function AppLayout({ children }) {
