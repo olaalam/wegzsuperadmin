@@ -93,7 +93,14 @@ function groupPermissions(permissions) {
 }
 
 function PermissionsDialog({ dialog, onClose }) {
-  const grouped = useMemo(() => groupPermissions(dialog.permissions), [dialog.permissions])
+  // جلب الصلاحيات من الـ API المحدد باستخدام adminId عندما يكون الـ Dialog مفتوحاً
+  const { data: permResponse, isLoading } = useGet(
+    dialog.adminId ? ['admin-permissions', dialog.adminId] : null,
+    dialog.adminId ? `/api/admin/admins/${dialog.adminId}/permissions` : null
+  )
+
+  const permissions = permResponse?.data?.permissions ?? permResponse?.permissions ?? []
+  const grouped = useMemo(() => groupPermissions(permissions), [permissions])
   const resources = Object.keys(grouped)
 
   useEffect(() => {
@@ -126,7 +133,7 @@ function PermissionsDialog({ dialog, onClose }) {
             <div>
               <h3 className="text-lg font-semibold leading-tight">{dialog.adminName}</h3>
               <p className="text-sm text-muted-foreground">
-                {dialog.permissions.length} permissions across {resources.length} areas
+                {isLoading ? 'Loading permissions...' : `${permissions.length} permissions across ${resources.length} areas`}
               </p>
             </div>
           </div>
@@ -140,7 +147,11 @@ function PermissionsDialog({ dialog, onClose }) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          {resources.length === 0 ? (
+          {isLoading ? (
+            <div className="flex py-12 items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : resources.length === 0 ? (
             <p className="py-10 text-center text-sm text-muted-foreground">
               This admin has no permissions yet. Edit the admin to assign some.
             </p>
@@ -183,12 +194,13 @@ export default function AdminsPage() {
 
   const admins = responseData?.data?.admins ?? responseData?.admins ?? []
 
+  // تحديث حالة الـ Dialog لتعتمد على adminId بدلاً من مصفوفة الصلاحيات المسبقة
   const [permissionsDialog, setPermissionsDialog] = useState({
     isOpen: false,
+    adminId: null,
     adminName: '',
-    permissions: [],
   })
-  const closeDialog = () => setPermissionsDialog({ isOpen: false, adminName: '', permissions: [] })
+  const closeDialog = () => setPermissionsDialog({ isOpen: false, adminId: null, adminName: '' })
 
   const summary = [
     { label: 'Total admins', value: admins.length, icon: Users, tone: 'bg-violet-500/10 text-violet-600 dark:text-violet-400' },
@@ -197,19 +209,16 @@ export default function AdminsPage() {
   ]
 
   const columns = [
-    {
+{
       accessorKey: 'name',
       header: 'Name',
       cell: ({ row }) => {
         const { name, email } = row.original
         return (
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-semibold text-primary">
-              {(name || '?').slice(0, 2).toUpperCase()}
-            </div>
-            <div className="flex min-w-0 flex-col items-start">
-              <span className="truncate text-sm font-semibold">{name}</span>
-              <span className="truncate text-xs text-muted-foreground">{email}</span>
+          <div className="flex items-center gap-3 w-full text-left">
+            <div className="flex min-w-0 flex-col items-start w-full">
+              <span className="truncate text-sm font-semibold w-full text-left">{name}</span>
+              <span className="truncate text-xs text-muted-foreground w-full text-left">{email}</span>
             </div>
           </div>
         )
@@ -246,7 +255,11 @@ export default function AdminsPage() {
               variant="outline"
               size="sm"
               onClick={() =>
-                setPermissionsDialog({ isOpen: true, adminName: row.original.name, permissions })
+                setPermissionsDialog({ 
+                  isOpen: true, 
+                  adminId: row.original.id, 
+                  adminName: row.original.name 
+                })
               }
               className="h-8 gap-1.5 rounded-lg px-3 text-xs transition-colors hover:bg-primary/10 hover:text-primary"
             >
@@ -305,7 +318,6 @@ export default function AdminsPage() {
           onEdit={(admin) => navigate(`/admins/edit/${admin.id}`, { state: { admin } })}
         />
       </div>
-
 
       <PermissionsDialog dialog={permissionsDialog} onClose={closeDialog} />
     </main>

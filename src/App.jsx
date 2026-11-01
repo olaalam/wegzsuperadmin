@@ -19,6 +19,10 @@ import SectionsPage from "./pages/Sections/Sections";
 import SectionsAddPage from "./pages/Sections/SectionsAdd";
 import ClientsPage from "./pages/Clients/Clients";
 import ClientsAddPage from "./pages/Clients/ClientsAdd";
+import Tenant from "./pages/Tenant/Tenant";
+import TenantAdd from "./pages/Tenant/TenantAdd";
+import RolesPage from "./pages/Roles/Roles";
+import RoleAddPage from "./pages/Roles/RoleAdd";
 
 // ─── Route guards ─────────────────────────────────────────────────────────────
 
@@ -86,6 +90,11 @@ export default function App() {
         <Route path="/clients" element={<PrivateRoute><ClientsPage /></PrivateRoute>} />
         <Route path="/clients/add" element={<PrivateRoute><ClientsAddPage /></PrivateRoute>} />
         <Route path="/clients/edit/:id" element={<PrivateRoute><ClientsAddPage /></PrivateRoute>} />
+        <Route path="/tenant" element={<PrivateRoute><Tenant /></PrivateRoute>} />
+        <Route path="/tenant/add" element={<PrivateRoute><TenantAdd /></PrivateRoute>} />
+        <Route path="/roles" element={<PrivateRoute><RolesPage /></PrivateRoute>} />
+        <Route path="/roles/add" element={<PrivateRoute><RoleAddPage /></PrivateRoute>} />
+        <Route path="/roles/edit/:id" element={<PrivateRoute><RoleAddPage /></PrivateRoute>} />
 
 
 

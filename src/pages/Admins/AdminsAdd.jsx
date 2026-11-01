@@ -10,12 +10,21 @@ export default function AdminAddPage() {
   const { id } = useParams();
   const isEdit = !!id;
 
-  // جلب بيانات الأدمن في حالة التعديل إذا لم تكن موجودة في الـ state
+  // Fetch admin data only when editing and ID exists
   const { data: adminResponse, isLoading: isLoadingAdmin } = useGet(
-    ['admin', id], 
-    `/api/admin/admins/${id}`, 
-    { enabled: isEdit && !location.state?.admin }
+    isEdit ? ['admin', id] : null,
+    isEdit ? `/api/admin/admins/${id}` : null
   );
+
+  // Fetch roles from the roles API
+  const { data: rolesResponse, isLoading: isLoadingRoles } = useGet('roles', '/api/admin/roles');
+  
+  const roles = rolesResponse?.data?.roles ?? rolesResponse?.roles ?? [];
+
+  const roleOptions = roles.map((role) => ({
+    label: role.name,
+    value: role.id || role._id,
+  }));
 
   const initialAdminData = location.state?.admin || adminResponse?.data?.admin || adminResponse?.data || adminResponse;
 
@@ -23,69 +32,54 @@ export default function AdminAddPage() {
     return (
       <div className="flex flex-col items-center justify-center h-96 gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-slate-500">جاري تحميل البيانات...</p>
+        <p className="text-sm text-slate-500">Loading data...</p>
       </div>
     );
   }
 
-  // قائمة الصلاحيات المتاحة (Permissions Options) بناءً على النظام
-  const permissionOptions = [
-    { label: 'Clients Read (قراءة العملاء)', value: 'clients:read' },
-    { label: 'Clients Create (إضافة عملاء)', value: 'clients:create' },
-    { label: 'Clients Update (تعديل عملاء)', value: 'clients:update' },
-    { label: 'Clients Delete (حذف عملاء)', value: 'clients:delete' },
-    { label: 'Sales Read (قراءة المبيعات)', value: 'sales:read' },
-    { label: 'Sales Create (إضافة مبيعات)', value: 'sales:create' },
-    { label: 'Sales Update (تعديل مبيعات)', value: 'sales:update' },
-    { label: 'Sales Delete (حذف مبيعات)', value: 'sales:delete' },
-    { label: 'Packages Read (قراءة الباقات)', value: 'packages:read' },
-    { label: 'Audit Read (قراءة السجلات)', value: 'audit:read' },
-    { label: 'Admins Read (قراءة الأدمنز)', value: 'admins:read' },
-    { label: 'Admins Create (إضافة أدمنز)', value: 'admins:create' },
-  ];
-
   const fields = [
     {
       name: 'name',
-      label: 'الاسم',
+      label: 'Name',
       type: 'text',
       required: true,
     },
     {
       name: 'email',
-      label: 'البريد الإلكتروني',
+      label: 'Email',
       type: 'email',
       required: true,
     },
     {
       name: 'password',
-      label: 'كلمة المرور',
+      label: 'Password',
       type: 'password',
-      required: !isEdit, // كلمة المرور غير إجبارية عند التعديل إذا تركناها فارغة
+      required: !isEdit, // Password is optional when editing if left blank
     },
     {
       name: 'status',
-      label: 'الحالة',
+      label: 'Status',
       type: 'select',
       required: true,
       options: [
-        { label: 'نشط (Active)', value: 'active' },
-        { label: 'غير نشط (Inactive)', value: 'inactive' },
+        { label: 'Active', value: 'active' },
+        { label: 'Inactive', value: 'inactive' },
       ],
     },
     {
-      name: 'permissions',
-      label: 'الصلاحيات (Permissions)',
-      type: 'multi-select',
-      required: false,
-      options: permissionOptions,
+      name: 'role_id',
+      label: 'Role',
+      type: 'select',
+      required: true,
+      options: roleOptions,
+      disabled: isLoadingRoles,
     },
   ];
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
       <AddPage
-        title="أدمن"
+        title="Admin"
         apiUrl="/api/admin/admins"
         queryKey="admins"
         method={isEdit ? 'PATCH' : 'POST'}
