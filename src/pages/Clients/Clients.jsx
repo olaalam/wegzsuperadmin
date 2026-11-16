@@ -1,12 +1,11 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, Building2, CheckCircle2, Filter, RefreshCw, Plus, ExternalLink } from 'lucide-react'
+import { Users, Building2, CheckCircle2, Filter, RefreshCw, ExternalLink, ArrowUpCircle } from 'lucide-react'
 import GenericDataTable from '../../components/GenericDataTable'
 import { useGet } from '../../hooks/useGet'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'
-import { cn } from '@/lib/utils'
 
 export default function ClientsPage() {
   const navigate = useNavigate()
@@ -120,9 +119,6 @@ export default function ClientsPage() {
             Monitor client accounts, subscription payments, and section allocations.
           </p>
         </div>
-        <Button onClick={() => navigate('/clients/add')} className="gap-2 rounded-2xl shadow-md h-11 px-5">
-          <Plus size={16} /> Add Client
-        </Button>
       </header>
 
       <section className="grid gap-6 sm:grid-cols-3" aria-label="Clients summary">
@@ -193,6 +189,17 @@ export default function ClientsPage() {
           getDeleteLabel={(row) => `Client: ${row.company_name}`}
           onAdd={() => navigate('/clients/add')}
           onEdit={(row) => navigate(`/clients/edit/${row._id}`, { state: { client: row } })}
+          renderRowActions={(row) => (
+            <Button
+              size="icon"
+              variant="ghost"
+              title="Upgrade package"
+              aria-label={`Upgrade package for ${row.company_name || row.email}`}
+              onClick={() => navigate('/orders', { state: { upgradeClient: row } })}
+            >
+              <ArrowUpCircle className="h-4 w-4 text-primary" />
+            </Button>
+          )}
         />
       </div>
     </main>

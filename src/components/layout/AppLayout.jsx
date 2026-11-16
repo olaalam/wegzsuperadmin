@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { ChevronLeft, ChevronRight, LayoutDashboard, ShieldCheck } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutDashboard, ShieldCheck, Package, CreditCard, ShoppingCart } from "lucide-react";
 import Navbar from "./Navbar";
 
 const navigation = [
@@ -10,7 +10,9 @@ const navigation = [
   { to: "/roles", label: { en: "Roles", ar: "الأدوار" }, icon: ShieldCheck },
   { to: "/sales", label: { en: "Sales", ar: "المبيعات" }, icon: LayoutDashboard },
   { to: "/clients", label: { en: "Clients", ar: "العملاء" }, icon: LayoutDashboard },
-  { to: "/payments", label: { en: "Payments", ar: "المدفوعات" }, icon: LayoutDashboard },
+  { to: "/packages", label: { en: "Packages", ar: "الباقات" }, icon: Package },
+  { to: "/payment-methods", label: { en: "Payment Methods", ar: "طرق الدفع" }, icon: CreditCard },
+  { to: "/orders", label: { en: "Orders", ar: "الطلبات" }, icon: ShoppingCart },
   { to: "/reports", label: { en: "Reports", ar: "التقارير" }, icon: LayoutDashboard },
   { to: "/financial-reports", label: { en: "Financial Reports", ar: "التقارير المالية" }, icon: LayoutDashboard },
   { to: "/sections", label: { en: "Sections", ar: "الأقسام" }, icon: LayoutDashboard },

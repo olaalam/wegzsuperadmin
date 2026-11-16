@@ -9,8 +9,9 @@ import AdminsPage from "./pages/Admins/Admins";
 import AdminAddPage from "./pages/Admins/AdminsAdd";
 import SalesPage from "./pages/Sales/Sales";
 import SalesAddPage from "./pages/Sales/SalesAdd";
-import PaymentPage from "./pages/Payment/Payment";
-import PaymentsAddPage from "./pages/Payment/PaymentAdd";
+import PackagesPage from "./pages/Packages/Packages";
+import PaymentMethodsPage from "./pages/PaymentMethods/PaymentMethods";
+import OrdersPage from "./pages/Orders/Orders";
 import ReportPage from "./pages/Repots/Reportspage";
 import ReportForm from "./pages/Repots/Reportformpage";
 import ReportDetails from "./pages/Repots/Reportdetails";
@@ -79,9 +80,9 @@ export default function App() {
         <Route path="/sales/add" element={<PrivateRoute><SalesAddPage /></PrivateRoute>} />
         <Route path="/sales/edit/:id" element={<PrivateRoute><SalesAddPage /></PrivateRoute>} />
         <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
-        <Route path="/payments" element={<PrivateRoute><PaymentPage /></PrivateRoute>} />
-        <Route path="/payments/add" element={<PrivateRoute><PaymentsAddPage /></PrivateRoute>} />
-        <Route path="/payments/edit/:id" element={<PrivateRoute><PaymentsAddPage /></PrivateRoute>} />
+        <Route path="/packages" element={<PrivateRoute><PackagesPage /></PrivateRoute>} />
+        <Route path="/payment-methods" element={<PrivateRoute><PaymentMethodsPage /></PrivateRoute>} />
+        <Route path="/orders" element={<PrivateRoute><OrdersPage /></PrivateRoute>} />
         <Route path="/reports" element={<PrivateRoute><ReportPage /></PrivateRoute>} />
         <Route path="/operations/edit/:id" element={<PrivateRoute><ReportForm /></PrivateRoute>} />
         <Route path="/reports/details/:id" element={<PrivateRoute><ReportDetails /></PrivateRoute>} />
