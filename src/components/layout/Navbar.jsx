@@ -7,11 +7,6 @@ import { toast } from "sonner";
 import { logout } from "../../redux/slices/authSlice";
 import { setLang, toggleTheme } from "../../redux/slices/uiSlice";
 
-// Pages where the back button should appear + their target
-const BACK_ROUTES = {
-  "/profile": "/dashboard",
-};
-
 export default function Navbar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -23,7 +18,7 @@ export default function Navbar() {
 
   const isRTL = lang === "ar";
   const isDark = theme === "dark";
-  const backTarget = BACK_ROUTES[location.pathname];
+  const showBackButton = location.pathname !== "/dashboard" && location.pathname !== "/login";
 
   // ── Logout ──────────────────────────────────────────────────────────────────
   const handleLogout = () => {
@@ -47,11 +42,14 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           {/* Back button */}
           <AnimatePresence>
-            {backTarget && (
+            {showBackButton && (
               <motion.button
                 key="back"
                 type="button"
-                onClick={() => navigate(backTarget)}
+                onClick={() => {
+                  const historyIndex = window.history.state?.idx;
+                  navigate(Number.isInteger(historyIndex) && historyIndex > 0 ? -1 : "/dashboard");
+                }}
                 initial={{ opacity: 0, x: isRTL ? 8 : -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: isRTL ? 8 : -8 }}

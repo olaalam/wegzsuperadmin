@@ -175,6 +175,8 @@ export function DashboardPage() {
       subtext: `${clients.active} active · ${clients.suspended} suspended`,
       icon: Users,
       iconClass: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
+      cardClass: 'from-violet-50/90 dark:from-violet-950/35',
+      accentClass: 'bg-violet-500',
     },
     {
       label: 'Administrators',
@@ -182,6 +184,8 @@ export function DashboardPage() {
       subtext: 'People with system access',
       icon: ShieldCheck,
       iconClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+      cardClass: 'from-emerald-50/90 dark:from-emerald-950/35',
+      accentClass: 'bg-emerald-500',
     },
     {
       label: 'Sections',
@@ -189,6 +193,8 @@ export function DashboardPage() {
       subtext: 'Configured on the platform',
       icon: Layers,
       iconClass: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
+      cardClass: 'from-sky-50/90 dark:from-sky-950/35',
+      accentClass: 'bg-sky-500',
     },
     {
       label: 'Revenue, last 30 days',
@@ -197,6 +203,8 @@ export function DashboardPage() {
       subtext: `${finance.pending_payments.count} pending (${formatNumber.format(finance.pending_payments.total)} ${currency})`,
       icon: DollarSign,
       iconClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+      cardClass: 'from-amber-50/90 dark:from-amber-950/35',
+      accentClass: 'bg-amber-500',
     },
   ]
 
@@ -226,20 +234,24 @@ export function DashboardPage() {
 
           {/* KPI cards */}
           <section className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4" aria-label="Key metrics">
-            {stats.map(({ label, value, suffix, subtext, icon: Icon, iconClass }, idx) => (
+            {stats.map(({ label, value, suffix, subtext, icon: Icon, iconClass, cardClass, accentClass }, idx) => (
               <Reveal key={label} i={idx + 1}>
-                <Card className="h-full rounded-2xl shadow-sm">
-                  <CardContent className="flex h-full flex-col p-6">
+                <Card className={`group relative h-full overflow-hidden border-slate-200/80 bg-gradient-to-br ${cardClass} to-card shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg`}>
+                  <div aria-hidden="true" className={`absolute inset-x-0 top-0 h-1 ${accentClass}`} />
+                  <CardContent className="flex h-full flex-col p-6 pt-7">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-muted-foreground">{label}</p>
-                      <div className={`grid h-10 w-10 place-items-center rounded-xl ${iconClass}`}>
+                      <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">{label}</p>
+                      <div className={`grid h-11 w-11 place-items-center rounded-2xl ${iconClass}`}>
                         <Icon className="h-5 w-5" />
                       </div>
                     </div>
-                    <p className="mt-4 text-3xl font-bold tabular-nums tracking-tight">
+                    <p className="mt-5 text-4xl font-black tabular-nums tracking-tight text-slate-950 dark:text-white">
                       <AnimatedNumber value={value} suffix={suffix} />
                     </p>
-                    <p className="mt-auto pt-4 text-xs text-muted-foreground">{subtext}</p>
+                    <p className="mt-auto flex items-center gap-2 pt-5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                      <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${accentClass}`} />
+                      {subtext}
+                    </p>
                   </CardContent>
                 </Card>
               </Reveal>
@@ -249,7 +261,7 @@ export function DashboardPage() {
           {/* Sales + recent clients */}
           <section className="grid gap-6 xl:grid-cols-[1fr_1.6fr]">
             <Reveal i={5} className="h-full">
-              <Card className="h-full rounded-2xl shadow-sm">
+              <Card className="h-full rounded-2xl shadow-md">
                 <CardHeader className="space-y-1 border-b px-6 py-5">
                   <CardTitle className="text-lg font-semibold">Sales overview</CardTitle>
                   <p className="text-sm text-muted-foreground">Last 30 days</p>
@@ -301,15 +313,12 @@ export function DashboardPage() {
             </Reveal>
 
             <Reveal i={6} className="h-full">
-              <Card className="flex h-full flex-col rounded-2xl shadow-sm">
+              <Card className="flex h-full flex-col rounded-2xl shadow-md">
                 <CardHeader className="flex-row items-center justify-between space-y-0 border-b px-6 py-5">
                   <div className="space-y-1">
                     <CardTitle className="text-lg font-semibold">Recent clients</CardTitle>
                     <p className="text-sm text-muted-foreground">Newest companies on the platform</p>
                   </div>
-                  <Button asChild variant="ghost" size="sm" className="font-medium">
-                    <Link to="/clients">View all</Link>
-                  </Button>
                 </CardHeader>
                 <CardContent className="flex-1 p-0">
                   {recentClients.length === 0 ? (

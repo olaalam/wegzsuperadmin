@@ -49,8 +49,8 @@ export default function Sections() {
         queryKey="sections"
         editApiUrl="/api/admin/sections"
         deleteApiUrl="/api/admin/sections"
-        onAdd={() => navigate("/admin/sections/add")}
-        onEdit={(row) => navigate(`/admin/sections/edit/${row.id}`)}
+        onAdd={() => navigate("/sections/add")}
+        onEdit={(row) => navigate(`/sections/edit/${row.id}`)}
         getDeleteLabel={(row) => row.name}
         canDelete={(row) => true}
       />

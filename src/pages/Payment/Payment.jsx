@@ -164,32 +164,6 @@ export default function PaymentPage() {
         )
       },
     },
-    {
-      id: 'actions',
-      header: 'Actions',
-      cell: ({ row }) => {
-        const payment = row.original
-        const status = payment.status || 'pending'
-        const isPending = status === 'pending'
-        return (
-          <div className="flex items-center gap-1.5">
-            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" title="View Details" onClick={() => handleView(payment._id)}>
-              <Eye size={14} />
-            </Button>
-            {isPending && (
-              <>
-                <Button size="sm" variant="outline" className="h-8 px-2 text-xs text-emerald-600 border-emerald-200 hover:bg-emerald-50 gap-1" onClick={() => handleApprove(payment._id)}>
-                  <Check size={14} /> Approve
-                </Button>
-                <Button size="sm" variant="outline" className="h-8 px-2 text-xs text-rose-600 border-rose-200 hover:bg-rose-50 gap-1" onClick={() => { setSelectedPaymentId(payment._id); setRejectModalOpen(true); }}>
-                  <X size={14} /> Reject
-                </Button>
-              </>
-            )}
-          </div>
-        )
-      }
-    }
   ]
 
   const resetFilters = () => {
@@ -288,7 +262,52 @@ export default function PaymentPage() {
           queryKey="payments"
           deleteApiUrl="/api/admin/payments"
           getDeleteLabel={(row) => `Payment: ${row.reference || row._id}`}
-          hideEdit={true}
+          renderRowActions={(payment) => {
+            const paymentId = payment.id ?? payment._id
+            const isPending = (payment.status || 'pending') === 'pending'
+
+            return (
+              <>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-8 w-8 text-slate-500 hover:text-primary"
+                  title="View Details"
+                  aria-label="View payment details"
+                  onClick={() => handleView(paymentId)}
+                >
+                  <Eye size={15} />
+                </Button>
+                {isPending && (
+                  <>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-emerald-600 hover:bg-emerald-50"
+                      title="Approve"
+                      aria-label="Approve payment"
+                      onClick={() => handleApprove(paymentId)}
+                    >
+                      <Check size={15} />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8 text-rose-600 hover:bg-rose-50"
+                      title="Reject"
+                      aria-label="Reject payment"
+                      onClick={() => {
+                        setSelectedPaymentId(paymentId)
+                        setRejectModalOpen(true)
+                      }}
+                    >
+                      <X size={15} />
+                    </Button>
+                  </>
+                )}
+              </>
+            )
+          }}
         />
       </div>
 

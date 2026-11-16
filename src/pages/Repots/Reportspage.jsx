@@ -106,7 +106,7 @@ export default function OperationsPage() {
             data={toArray(data)}
             isLoading={isLoading}
             queryKey={OPERATIONS_KEY}
-            onAdd={() => navigate("/operations/add")}
+
             actions={false}
         />
     );

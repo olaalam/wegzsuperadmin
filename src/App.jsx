@@ -10,7 +10,7 @@ import AdminAddPage from "./pages/Admins/AdminsAdd";
 import SalesPage from "./pages/Sales/Sales";
 import SalesAddPage from "./pages/Sales/SalesAdd";
 import PaymentPage from "./pages/Payment/Payment";
-import PaymentsAddPage from "./pages/Payment/Paymentadd";
+import PaymentsAddPage from "./pages/Payment/PaymentAdd";
 import ReportPage from "./pages/Repots/Reportspage";
 import ReportForm from "./pages/Repots/Reportformpage";
 import ReportDetails from "./pages/Repots/Reportdetails";
@@ -23,6 +23,8 @@ import Tenant from "./pages/Tenant/Tenant";
 import TenantAdd from "./pages/Tenant/TenantAdd";
 import RolesPage from "./pages/Roles/Roles";
 import RoleAddPage from "./pages/Roles/RoleAdd";
+import Theme from "./pages/Theme/Theme";
+import ThemeAdd from "./pages/Theme/ThemeAdd";
 
 // ─── Route guards ─────────────────────────────────────────────────────────────
 
@@ -95,6 +97,10 @@ export default function App() {
         <Route path="/roles" element={<PrivateRoute><RolesPage /></PrivateRoute>} />
         <Route path="/roles/add" element={<PrivateRoute><RoleAddPage /></PrivateRoute>} />
         <Route path="/roles/edit/:id" element={<PrivateRoute><RoleAddPage /></PrivateRoute>} />
+        <Route path="/theme" element={<PrivateRoute><Theme /></PrivateRoute>} />
+        <Route path="/theme/add" element={<PrivateRoute><ThemeAdd /></PrivateRoute>} />
+        <Route path="/theme/edit/:id" element={<PrivateRoute><ThemeAdd /></PrivateRoute>} />
+
 
 
 

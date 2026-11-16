@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, LayoutDashboard, ShieldCheck } from "lucide-
 import Navbar from "./Navbar";
 
 const navigation = [
-  { to: "/dashboard", label: { en: "Design Studio", ar: "استوديو التصميم" }, icon: LayoutDashboard },
+  { to: "/dashboard", label: { en: "Dashboard", ar: "لوحة التحكم" }, icon: LayoutDashboard },
   { to: "/admins", label: { en: "Admins", ar: "الأدمنز" }, icon: ShieldCheck },
   { to: "/roles", label: { en: "Roles", ar: "الأدوار" }, icon: ShieldCheck },
   { to: "/sales", label: { en: "Sales", ar: "المبيعات" }, icon: LayoutDashboard },
@@ -14,7 +14,7 @@ const navigation = [
   { to: "/reports", label: { en: "Reports", ar: "التقارير" }, icon: LayoutDashboard },
   { to: "/financial-reports", label: { en: "Financial Reports", ar: "التقارير المالية" }, icon: LayoutDashboard },
   { to: "/sections", label: { en: "Sections", ar: "الأقسام" }, icon: LayoutDashboard },
-  // { to: "/tenant", label: { en: "Tenant", ar: "المستأجر" }, icon: LayoutDashboard },
+  { to: "/theme", label: { en: "Themes", ar: "القوالب" }, icon: LayoutDashboard },
 ];
 
 export default function AppLayout({ children }) {

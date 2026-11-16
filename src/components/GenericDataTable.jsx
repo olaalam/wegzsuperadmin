@@ -73,6 +73,7 @@ export default function GenericDataTable({
   title,
   onAdd,
   onEdit,
+  renderRowActions,
   editApiUrl,
   deleteApiUrl,
   queryKey,
@@ -304,6 +305,7 @@ export default function GenericDataTable({
                 <Pencil className="h-4 w-4" />
               </Button>
             )}
+            {renderRowActions?.(row.original)}
             {deleteApiUrl && (() => {
               const deletable = !canDelete || canDelete(row.original);
               return (
@@ -334,7 +336,7 @@ export default function GenericDataTable({
     }
 
     return baseColumns;
-  }, [columns, onEdit, deleteApiUrl, actions, editApiUrl, updateStatusMutation.isPending, t, requireInactiveReason, deleteWithoutId, pagination.pageIndex, canDelete, getDeleteLabel, cannotDeleteHint]);
+  }, [columns, onEdit, renderRowActions, deleteApiUrl, actions, editApiUrl, updateStatusMutation.isPending, t, requireInactiveReason, deleteWithoutId, pagination.pageIndex, canDelete, getDeleteLabel, cannotDeleteHint]);
 
   const table = useReactTable({
     data: sortedData,

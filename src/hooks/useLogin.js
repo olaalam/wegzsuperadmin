@@ -9,7 +9,7 @@ export const useLogin = () => {
 
     return useMutation({
         mutationFn: async (credentials) => {
-            const { data } = await api.post('/api/restaurant/auth/login', credentials);
+            const { data } = await api.post('/api/auth/login', credentials);
             return data;
         },
         onSuccess: (res) => {
