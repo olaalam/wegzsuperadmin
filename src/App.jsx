@@ -26,6 +26,8 @@ import RolesPage from "./pages/Roles/Roles";
 import RoleAddPage from "./pages/Roles/RoleAdd";
 import Theme from "./pages/Theme/Theme";
 import ThemeAdd from "./pages/Theme/ThemeAdd";
+import SubscriptionPage from "./pages/Billing/SubscriptionPage";
+import CustomDomainsPage from "./pages/Billing/CustomDomainsPage";
 
 // ─── Route guards ─────────────────────────────────────────────────────────────
 
@@ -101,6 +103,14 @@ export default function App() {
         <Route path="/theme" element={<PrivateRoute><Theme /></PrivateRoute>} />
         <Route path="/theme/add" element={<PrivateRoute><ThemeAdd /></PrivateRoute>} />
         <Route path="/theme/edit/:id" element={<PrivateRoute><ThemeAdd /></PrivateRoute>} />
+        <Route
+          path="/subscription"
+          element={<PrivateRoute><SubscriptionPage /></PrivateRoute>}
+        />
+        <Route
+          path="/custom-domains"
+          element={<PrivateRoute><CustomDomainsPage /></PrivateRoute>}
+        />
 
 
 

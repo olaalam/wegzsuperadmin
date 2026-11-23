@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  User, Mail, Phone, Shield, RefreshCw, 
-  Edit3, Lock, X, Check, AtSign, Camera, KeyRound, UserCheck 
+import {
+  User, Mail, Phone, Shield, RefreshCw,
+  Edit3, Lock, X, Check, AtSign, Camera, KeyRound, UserCheck
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { useMutation } from "../hooks/useMutation";
+import api from "../api/axios";
 
 import Loader from "../components/common/Loader";
 import Badge from "../components/ui/Badge";
@@ -94,7 +94,7 @@ export default function ProfilePage() {
   const cachedUser = useSelector((s) => s.auth.user);
 
   const { data, loading, error, refetch } = useGet(API_ENDPOINTS.USER.PROFILE);
-  const { mutate, loading: mutationLoading } = useMutation();
+  const [mutationLoading, setMutationLoading] = useState(false);
 
   const apiResponse = data?.user ?? data?.data ?? data;
   const u = apiResponse ?? cachedUser;
@@ -145,34 +145,42 @@ export default function ProfilePage() {
 
   const initials = u?.name
     ? u.name
-        .split(" ")
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
+      .split(" ")
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase()
     : "U";
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
-    const result = await mutate("/api/auth/me", "PATCH", formData);
-    if (result.success) {
+    setMutationLoading(true);
+    try {
+      await api.patch(API_ENDPOINTS.USER.UPDATE_PROFILE, formData);
       toast.success(t.profileUpdated);
       setIsEditModalOpen(false);
       refetch();
-    } else {
-      toast.error(result.error);
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Failed to update profile";
+      toast.error(msg);
+    } finally {
+      setMutationLoading(false);
     }
   };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    const result = await mutate("/api/auth/change-password", "PATCH", passwordData);
-    if (result.success) {
+    setMutationLoading(true);
+    try {
+      await api.patch(API_ENDPOINTS.USER.CHANGE_PASSWORD, passwordData);
       toast.success(t.passwordUpdated);
       setIsPasswordModalOpen(false);
       setPasswordData({ currentPassword: "", newPassword: "" });
-    } else {
-      toast.error(result.error);
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "Failed to change password";
+      toast.error(msg);
+    } finally {
+      setMutationLoading(false);
     }
   };
 
@@ -194,7 +202,7 @@ export default function ProfilePage() {
 
           {/* Profile Header Details */}
           <div className="px-6 pb-6 pt-0 relative flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 -mt-14 sm:-mt-16">
-            
+
             <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-start">
               {/* Avatar Container */}
               <div className="relative">
@@ -234,7 +242,7 @@ export default function ProfilePage() {
                 <Edit3 className="w-4 h-4" />
                 <span>{t.editProfile}</span>
               </button>
-              
+
               <button
                 onClick={() => setIsPasswordModalOpen(true)}
                 className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-[var(--background)] border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)] transition-all"

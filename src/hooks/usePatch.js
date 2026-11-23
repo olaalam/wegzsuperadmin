@@ -19,11 +19,11 @@ export const usePatch = (url, onSuccessKey) => {
             toast.success("success");
         },
         onError: (error) => {
-            const serverErrorMessage = 
-                error?.response?.data?.error?.message ||  
-                error?.response?.data?.message ||         
-                error?.message ||                          
-                'Invalid Credentials';                     
+            const serverErrorMessage =
+                error?.response?.data?.error?.message ||
+                error?.response?.data?.message ||
+                error?.message ||
+                'Invalid Credentials';
 
             toast.error(serverErrorMessage);
         },

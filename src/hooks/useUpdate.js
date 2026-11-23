@@ -10,7 +10,7 @@ export const useUpdate = (url, onSuccessKey) => {
         mutationFn: async ({ id, payload, customUrl }) => {
             // إذا قمنا بتمرير customUrl نستخدمه مباشرة، وإلا نطبق المنطق القديم
             const targetUrl = customUrl ? customUrl : (id ? `${url}/${id}` : url);
-            
+
             const { data } = await api.put(targetUrl, payload);
             return data;
         },
@@ -23,7 +23,7 @@ export const useUpdate = (url, onSuccessKey) => {
         onError: (error) => {
 
             // 💡 استخراج رسالة الخطأ بناءً على الهيكل الراجع من الـ API الخاص بكِ
-            const serverErrorMessage = 
+            const serverErrorMessage =
                 error?.response?.data?.error?.message ||  // للتعامل مع { error: { message: "..." } }
                 error?.response?.data?.message ||         // للتعامل مع { message: "..." }
                 error?.message ||                          // رسالة Axios الافتراضية (مثل Network Error)

@@ -25,11 +25,11 @@ export const useLogin = () => {
             }
         },
         onError: (error) => {
-            const serverErrorMessage = 
-                error?.response?.data?.error?.message ||  
-                error?.response?.data?.message ||         
-                error?.message ||                          
-                'Invalid Credentials';                     
+            const serverErrorMessage =
+                error?.response?.data?.error?.message ||
+                error?.response?.data?.message ||
+                error?.message ||
+                'Invalid Credentials';
 
             toast.error(serverErrorMessage);
         },

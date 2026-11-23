@@ -56,11 +56,10 @@ export default function Tenant() {
         const isVerified = row.original.isVerified;
         return (
           <span
-            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
-              isVerified
+            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${isVerified
                 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/60'
                 : 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400 border border-amber-200/60'
-            }`}
+              }`}
           >
             {isVerified ? (t('verified') || 'مؤكد') : (t('unverified') || 'غير مؤكد')}
           </span>

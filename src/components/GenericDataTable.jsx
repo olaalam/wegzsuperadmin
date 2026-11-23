@@ -144,27 +144,27 @@ export default function GenericDataTable({
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, newStatus, keyName, reason }) => {
-        const isBundle = editApiUrl?.includes("bundles");
-        const isDiscount = editApiUrl?.includes("discounts");
-        const isFreeDelivery = editApiUrl?.includes("free-delivery");
+      const isBundle = editApiUrl?.includes("bundles");
+      const isDiscount = editApiUrl?.includes("discounts");
+      const isFreeDelivery = editApiUrl?.includes("free-delivery");
 
-        const shouldIncludeId = !statusWithoutId && !(isFreeDelivery && deleteWithoutId);
+      const shouldIncludeId = !statusWithoutId && !(isFreeDelivery && deleteWithoutId);
 
-        let url = editApiUrl;
-        if (isBundle || isDiscount) {
-            url = `${editApiUrl}/${id}/toggle-status`;
-        } else if (shouldIncludeId && id) {
-            url = `${editApiUrl}/${id}`;
-        }
+      let url = editApiUrl;
+      if (isBundle || isDiscount) {
+        url = `${editApiUrl}/${id}/toggle-status`;
+      } else if (shouldIncludeId && id) {
+        url = `${editApiUrl}/${id}`;
+      }
 
-        const requestBody = {};
-        requestBody[keyName] = newStatus;
+      const requestBody = {};
+      requestBody[keyName] = newStatus;
 
-        if (reason) {
-            requestBody.inactiveReason = reason;
-        }
+      if (reason) {
+        requestBody.inactiveReason = reason;
+      }
 
-          return await api.patch(url, requestBody);
+      return await api.patch(url, requestBody);
     },
     onSuccess: () => {
       if (queryKey) {
@@ -232,26 +232,26 @@ export default function GenericDataTable({
 
             return (
               <div className="flex items-center justify-center gap-3">
-<Switch
-  checked={isActive}
-  disabled={updateStatusMutation.isPending}
-  className={cn(
-    "data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-500 transition-colors"
-  )}
-  onCheckedChange={(checked) => {
-    const newStatus = checked ? "active" : "inactive";
-    if (!checked && requireInactiveReason) {
-      setInactiveDialog({
-        isOpen: true,
-        rowId: rowId,
-        keyName: col.accessorKey,
-        newStatus: newStatus
-      });
-    } else {
-      updateStatusMutation.mutate({ id: rowId, newStatus, keyName: col.accessorKey });
-    }
-  }}
-/>
+                <Switch
+                  checked={isActive}
+                  disabled={updateStatusMutation.isPending}
+                  className={cn(
+                    "data-[state=checked]:bg-emerald-600 dark:data-[state=checked]:bg-emerald-500 transition-colors"
+                  )}
+                  onCheckedChange={(checked) => {
+                    const newStatus = checked ? "active" : "inactive";
+                    if (!checked && requireInactiveReason) {
+                      setInactiveDialog({
+                        isOpen: true,
+                        rowId: rowId,
+                        keyName: col.accessorKey,
+                        newStatus: newStatus
+                      });
+                    } else {
+                      updateStatusMutation.mutate({ id: rowId, newStatus, keyName: col.accessorKey });
+                    }
+                  }}
+                />
                 <span className={cn(
                   "text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full transition-colors",
                   isActive

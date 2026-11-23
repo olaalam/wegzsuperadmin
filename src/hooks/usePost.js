@@ -20,7 +20,7 @@ export const usePost = (url, method = 'post', onSuccessKey) => {
 
 
             // 💡 استخراج رسالة الخطأ بناءً على الهيكل الراجع من الـ API الخاص بكِ
-            const serverErrorMessage = 
+            const serverErrorMessage =
                 error?.response?.data?.error?.message ||  // للتعامل مع { error: { message: "..." } }
                 error?.response?.data?.message ||         // للتعامل مع { message: "..." }
                 error?.message ||                          // رسالة Axios الافتراضية (مثل Network Error)

@@ -49,22 +49,19 @@ function StatusSwitch({ admin }) {
         aria-label={checked ? 'Deactivate admin' : 'Activate admin'}
         onClick={toggle}
         disabled={mutation.isPending}
-        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-wait ${
-          checked ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
-        }`}
+        className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-wait ${checked ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
+          }`}
       >
         <span
-          className={`grid h-5 w-5 place-items-center rounded-full bg-white shadow-md transition-transform duration-300 ease-out ${
-            checked ? 'translate-x-5 rtl:-translate-x-5' : 'translate-x-0'
-          }`}
+          className={`grid h-5 w-5 place-items-center rounded-full bg-white shadow-md transition-transform duration-300 ease-out ${checked ? 'translate-x-5 rtl:-translate-x-5' : 'translate-x-0'
+            }`}
         >
           {mutation.isPending && <Loader2 className="h-3 w-3 animate-spin text-slate-500" />}
         </span>
       </button>
       <span
-        className={`w-14 text-start text-xs font-medium ${
-          checked ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
-        }`}
+        className={`w-14 text-start text-xs font-medium ${checked ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+          }`}
       >
         {checked ? 'Active' : 'Inactive'}
       </span>
@@ -87,7 +84,7 @@ const DEFAULT_ACTION_STYLE = 'bg-muted text-muted-foreground border-border'
 function groupPermissions(permissions) {
   return permissions.reduce((acc, perm) => {
     const [resource, action = 'access'] = String(perm).split(':')
-    ;(acc[resource] ||= []).push(action)
+      ; (acc[resource] ||= []).push(action)
     return acc
   }, {})
 }
@@ -209,7 +206,7 @@ export default function AdminsPage() {
   ]
 
   const columns = [
-{
+    {
       accessorKey: 'name',
       header: 'Name',
       cell: ({ row }) => {
@@ -255,10 +252,10 @@ export default function AdminsPage() {
               variant="outline"
               size="sm"
               onClick={() =>
-                setPermissionsDialog({ 
-                  isOpen: true, 
-                  adminId: row.original.id, 
-                  adminName: row.original.name 
+                setPermissionsDialog({
+                  isOpen: true,
+                  adminId: row.original.id,
+                  adminName: row.original.name
                 })
               }
               className="h-8 gap-1.5 rounded-lg px-3 text-xs transition-colors hover:bg-primary/10 hover:text-primary"

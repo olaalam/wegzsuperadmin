@@ -17,6 +17,8 @@ const navigation = [
   { to: "/financial-reports", label: { en: "Financial Reports", ar: "التقارير المالية" }, icon: LayoutDashboard },
   { to: "/sections", label: { en: "Sections", ar: "الأقسام" }, icon: LayoutDashboard },
   { to: "/theme", label: { en: "Themes", ar: "القوالب" }, icon: LayoutDashboard },
+  { to: "/custom-domains", label: { en: "Custom Domains", ar: "النطاقات المخصصة" }, icon: LayoutDashboard } ,
+  {to: "/subscrition", label: { en: "Subscription", ar: "الاشتراكات" }, icon: LayoutDashboard },
 ];
 
 export default function AppLayout({ children }) {
